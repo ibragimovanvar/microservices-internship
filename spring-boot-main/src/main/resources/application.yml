@@ -1,0 +1,47 @@
+spring:
+  application:
+    name: main-domain-service
+  profiles:
+    active: dev
+  jpa:
+    properties:
+      hibernate:
+        hbm2ddl:
+          auto: update
+          import_files: classpath:import/initial.sql
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+#        show_sql: true
+#        format_sql: true
+  mvc:
+    servlet:
+      path: /api
+  main:
+    allow-circular-references: false
+  cloud:
+    discovery:
+      enabled: true
+
+management:
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: health, prometheus, metrics, info
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: always
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka
+    register-with-eureka: true
+    fetch-registry: true
+logging:
+  level:
+    feign: WARN      # Only warnings and errors
+    io.github.resilience4j.circuitbreaker: ERROR  # Circuit breaker errors only
+    io.github.resilience4j.retry: ERROR            # Retry errors only
