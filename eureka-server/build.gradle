@@ -2,10 +2,24 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.3.12'
 	id 'io.spring.dependency-management' version '1.1.7'
+	id 'com.google.cloud.tools.jib' version '3.4.0'
 }
 
 group = 'com.epam.training'
 version = '0.0.1-SNAPSHOT'
+
+jib {
+	from {
+		image = 'eclipse-temurin:17-jre' // Or 21 if you're on Java 21
+	}
+	to {
+		image = 'ibragimovanvar/discovery-service:latest' // Or local repo
+	}
+	container {
+		ports = ['8761']
+		mainClass = project.hasProperty('mainClassName') ? project.property('mainClassName') : 'com.epam.training.EurekaServerApplication'
+	}
+}
 
 java {
 	toolchain {
@@ -23,6 +37,7 @@ ext {
 
 dependencies {
 	implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-server'
+	implementation 'org.springframework.boot:spring-boot-starter-security'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }

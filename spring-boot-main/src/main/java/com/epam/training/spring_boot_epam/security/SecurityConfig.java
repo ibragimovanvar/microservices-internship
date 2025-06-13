@@ -14,7 +14,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import com.epam.training.spring_boot_epam.security.service.impl.JwtAuthFilter;
 
-@Profile("dev")
+@Profile({"dev", "docker",})
 @Configuration
 @EnableMethodSecurity
 public class SecurityConfig {
@@ -45,13 +45,11 @@ public class SecurityConfig {
                         .requestMatchers(WHITE_URLS).permitAll()
                         .requestMatchers(HttpMethod.POST, "/v1/trainers", "/v1/trainees").permitAll()
                         .anyRequest().authenticated())
-                .exceptionHandling(configurer ->  {
-                    configurer.authenticationEntryPoint((request, response, authException) -> {
-                        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                        response.setContentType("application/json");
-                        response.getWriter().write("{\"success\": false, \"message\": \"Please authorize first\", \"data\": null}");
-                    });
-                })
+                .exceptionHandling(configurer -> configurer.authenticationEntryPoint((request, response, authException) -> {
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    response.setContentType("application/json");
+                    response.getWriter().write("{\"success\": false, \"message\": \"Please authorize first\", \"data\": null}");
+                }))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider)
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);

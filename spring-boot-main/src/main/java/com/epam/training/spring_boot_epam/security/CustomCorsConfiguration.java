@@ -2,13 +2,14 @@ package com.epam.training.spring_boot_epam.security;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.context.annotation.Profile;
+import org.springframework.lang.NonNullApi;
 import org.springframework.stereotype.Component;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 
 import java.util.List;
 
-@Profile("dev")
+@Profile({"dev", "docker",})
 @Component
 public class CustomCorsConfiguration implements CorsConfigurationSource {
     @Override

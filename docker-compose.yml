@@ -1,0 +1,60 @@
+version: '3.9'
+
+services:
+  discovery-service:
+    image: ibragimovanvar/discovery-service:latest
+    container_name: discovery-service
+    ports:
+      - "8761:8761"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    networks:
+      - training-net
+
+  training-workload-service:
+    image: ibragimovanvar/training-workload-service:latest
+    container_name: training-workload-service
+    ports:
+      - "8081:8081"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+      - discovery-service
+    networks:
+      - training-net
+
+  postgres:
+    image: postgres:15
+    container_name: postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: training_epam
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - training-net
+
+  training-service:
+    image: ibragimovanvar/training-service:latest
+    container_name: training-service
+    ports:
+      - "8082:8082"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/training_epam
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+    depends_on:
+      - postgres
+      - discovery-service
+    networks:
+      - training-net
+
+volumes:
+  postgres-data:
+
+networks:
+  training-net:

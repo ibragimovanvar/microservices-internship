@@ -73,7 +73,6 @@ class TrainingServiceTests {
     private Trainer trainer;
     private Training training;
     private TrainingDTO trainingDTO;
-    private TrainingType trainingType;
 
     @BeforeEach
     void setUp() {
@@ -87,7 +86,7 @@ class TrainingServiceTests {
         User trainerUser = new User("Jane", "Smith", true);
         trainerUser.setUsername("anvar_ibragimov");
         trainerUser.setPassword("secret");
-        trainingType = new TrainingType(1L, "Yoga");
+        TrainingType trainingType = new TrainingType(1L, "Yoga");
         trainer = new Trainer(trainerUser, trainingType);
         trainer.setId(2L);
         trainer.setTrainings(new ArrayList<>());
@@ -198,7 +197,7 @@ class TrainingServiceTests {
         // Then
         assertThatThrownBy(() -> trainingService.cancelTraining(trainingId))
                 .isInstanceOf(DomainException.class)
-                .hasMessage("Training ibragimovs not exist");
+                .hasMessage("Training does not exist");
         verify(trainingDao, never()).delete(any());
         verify(trainingWorkloadService, never()).acceptTrainerWorkload(any());
     }
