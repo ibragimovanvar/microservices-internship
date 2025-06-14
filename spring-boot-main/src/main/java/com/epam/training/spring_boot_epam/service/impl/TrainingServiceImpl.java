@@ -13,6 +13,7 @@ import com.epam.training.spring_boot_epam.dto.filters.TrainerTrainingsFilter;
 import com.epam.training.spring_boot_epam.dto.response.ApiResponse;
 import com.epam.training.spring_boot_epam.dto.response.TraineeFilterResponseDTO;
 import com.epam.training.spring_boot_epam.dto.response.TrainerFilterResponseDTO;
+import com.epam.training.spring_boot_epam.event.producer.TrainerWorkloadEventProducer;
 import com.epam.training.spring_boot_epam.exception.AuthorizationException;
 import com.epam.training.spring_boot_epam.exception.DomainException;
 import com.epam.training.spring_boot_epam.exception.ServiceUnavailableException;
@@ -49,6 +50,7 @@ public class TrainingServiceImpl implements TrainingService {
     private final TrainerService trainerService;
     private final DomainUtils domainUtils;
     private final TrainingWorkloadService trainingWorkloadService;
+    private final TrainerWorkloadEventProducer trainerWorkloadEventProducer;
 
     public void checkAuthProfile(String username) {
         User user = getByUsername(username);
@@ -155,11 +157,7 @@ public class TrainingServiceImpl implements TrainingService {
         trainerWorkloadDTO.setMonth(dto.getTrainingDateTime().getMonth().name());
         trainerWorkloadDTO.setYear(dto.getTrainingDateTime().getYear());
 
-        ApiResponse<Void> apiResponse = trainingWorkloadService.acceptTrainerWorkload(trainerWorkloadDTO).getBody();
-
-        if (!apiResponse.isSuccess()) {
-            throw new ServiceUnavailableException(apiResponse.getMessage());
-        }
+        trainerWorkloadEventProducer.sendToQueue(trainerWorkloadDTO);
 
         return new ApiResponse<>(true, "Successfully created", null);
     }
@@ -191,11 +189,7 @@ public class TrainingServiceImpl implements TrainingService {
         trainerWorkloadDTO.setMonth(training.getTrainingDateTime().getMonth().name());
         trainerWorkloadDTO.setYear(training.getTrainingDateTime().getYear());
 
-        ApiResponse<Void> apiResponse = trainingWorkloadService.acceptTrainerWorkload(trainerWorkloadDTO).getBody();
-
-        if (!apiResponse.isSuccess()) {
-            throw new ServiceUnavailableException(apiResponse.getMessage());
-        }
+        trainerWorkloadEventProducer.sendToQueue(trainerWorkloadDTO);
 
         LOGGER.info("Training cancelled successfully: {}", training.getId());
 

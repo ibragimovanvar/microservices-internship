@@ -20,6 +20,7 @@ services:
       - SPRING_PROFILES_ACTIVE=docker
     depends_on:
       - discovery-service
+      - activemq
     networks:
       - training-net
 
@@ -50,6 +51,19 @@ services:
     depends_on:
       - postgres
       - discovery-service
+      - activemq
+    networks:
+      - training-net
+
+  activemq:
+    image: rmohr/activemq:5.18.3
+    container_name: activemq
+    ports:
+      - "61616:61616" # JMS
+      - "8161:8161"   # Web console
+    environment:
+      - ACTIVEMQ_ADMIN_LOGIN=admin
+      - ACTIVEMQ_ADMIN_PASSWORD=admin
     networks:
       - training-net
 

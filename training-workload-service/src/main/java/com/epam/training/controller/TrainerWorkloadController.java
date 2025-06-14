@@ -19,13 +19,6 @@ public class TrainerWorkloadController {
     private final TrainerWorkloadService trainerWorkloadService;
     private final DomainUtils domainUtils;
 
-    @PostMapping
-    public ResponseEntity<ApiResponse<Void>> acceptTrainerWorkload(@Valid @RequestBody TrainerWorkloadDTO trainerWorkloadDTO) {
-        domainUtils.checkUsername(trainerWorkloadDTO.getUsername());
-
-        return new ResponseEntity<>(trainerWorkloadService.acceptTrainerWorkload(trainerWorkloadDTO), HttpStatus.CREATED);
-    }
-
     @GetMapping("/by-month")
     public ResponseEntity<ApiResponse<TrainerWorkloadResponseDTO>> getTrainerWorkloadByMonth(@RequestParam("username") String username) {
         domainUtils.checkUsername(username);
