@@ -13,7 +13,7 @@ jib {
         image = 'eclipse-temurin:17-jre' // Or 21 if you're on Java 21
     }
     to {
-        image = 'ibragimovanvar/training-service:latest' // Or local repo
+        image = 'ibragimovanvar/training-service:1.1' // Or local repo
     }
     container {
         jvmFlags = ['-Dspring.profiles.active=docker']

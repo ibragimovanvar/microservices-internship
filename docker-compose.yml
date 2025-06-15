@@ -12,8 +12,8 @@ services:
       - training-net
 
   training-workload-service:
-    image: ibragimovanvar/training-workload-service:latest
-    container_name: training-workload-service
+    image: ibragimovanvar/training-workload-service:1.1
+    container_name: training-workload-service1.1
     ports:
       - "8081:8081"
     environment:
@@ -39,8 +39,8 @@ services:
       - training-net
 
   training-service:
-    image: ibragimovanvar/training-service:latest
-    container_name: training-service
+    image: ibragimovanvar/training-service:1.1
+    container_name: training-service1.1
     ports:
       - "8082:8082"
     environment:
@@ -56,11 +56,11 @@ services:
       - training-net
 
   activemq:
-    image: rmohr/activemq:5.18.3
+    image: rmohr/activemq
     container_name: activemq
     ports:
-      - "61616:61616" # JMS
-      - "8161:8161"   # Web console
+      - "61616:61616"
+      - "8161:8161"
     environment:
       - ACTIVEMQ_ADMIN_LOGIN=admin
       - ACTIVEMQ_ADMIN_PASSWORD=admin
