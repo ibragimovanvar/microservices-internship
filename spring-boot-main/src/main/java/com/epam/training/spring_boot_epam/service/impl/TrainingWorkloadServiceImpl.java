@@ -36,32 +36,6 @@ public class TrainingWorkloadServiceImpl implements TrainingWorkloadService {
         this.domainUtils = domainUtils;
     }
 
-    @CircuitBreaker(name = "TRAINING-WORKLOAD-SERVICE-CB", fallbackMethod = "fallbackAccept")
-    public ResponseEntity<ApiResponse<Void>> acceptTrainerWorkload(TrainerWorkloadDTO dto) {
-        Optional<Token> token = tokenDao.findByUsernameAndExpiredFalse(domainUtils.getCurrentUser().getUsername());
-
-        if (token.isEmpty()) {
-            throw new AuthorizationException("Please login first");
-        }
-
-        return ResponseEntity.ok(client.acceptTrainerWorkload("Bearer " + token.get().getToken(), dto));
-    }
-
-    public ResponseEntity<ApiResponse<Void>> fallbackAccept(TrainerWorkloadDTO dto, Throwable t) {
-        if (t instanceof FeignException.BadRequest feignException) {
-            throw new DomainException(extractErrorMessage(feignException.getMessage()));
-        } else if (t instanceof FeignException.Unauthorized feignException) {
-            throw new AuthorizationException("Please authorize first !");
-        }else if (t instanceof FeignException.Forbidden feignException) {
-            throw new ForbiddenException(extractErrorMessage(feignException.getMessage()));
-        }
-
-        ApiResponse<Void> fallback =
-                new ApiResponse<>(false, "Training workload service is unavailable", null);
-        LOGGER.error(fallback.getMessage(), t);
-        return ResponseEntity.status(503).body(fallback);
-    }
-
     @CircuitBreaker(name = "TRAINING-WORKLOAD-SERVICE-CB", fallbackMethod = "fallbackGetByMonth")
     public ResponseEntity<ApiResponse<TrainerWorkloadResponseDTO>> getTrainerWorkloadByMonth(String username) {
         Optional<Token> token = tokenDao.findByUsernameAndExpiredFalse(domainUtils.getCurrentUser().getUsername());

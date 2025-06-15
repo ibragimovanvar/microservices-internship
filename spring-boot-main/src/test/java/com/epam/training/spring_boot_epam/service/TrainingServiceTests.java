@@ -15,6 +15,7 @@ import com.epam.training.spring_boot_epam.dto.filters.TrainerTrainingsFilter;
 import com.epam.training.spring_boot_epam.dto.response.ApiResponse;
 import com.epam.training.spring_boot_epam.dto.response.TraineeFilterResponseDTO;
 import com.epam.training.spring_boot_epam.dto.response.TrainerFilterResponseDTO;
+import com.epam.training.spring_boot_epam.event.producer.TrainerWorkloadEventProducer;
 import com.epam.training.spring_boot_epam.exception.DomainException;
 import com.epam.training.spring_boot_epam.exception.ServiceUnavailableException;
 import com.epam.training.spring_boot_epam.mapper.TrainingMapper;
@@ -63,6 +64,10 @@ class TrainingServiceTests {
     private TrainerService trainerService;
     @Mock
     private TrainingWorkloadService trainingWorkloadService;
+
+    @Mock
+    private TrainerWorkloadEventProducer eventProducer;
+
     @Mock
     private DomainUtils domainUtils;
 
@@ -184,7 +189,6 @@ class TrainingServiceTests {
                 .isInstanceOf(DomainException.class)
                 .hasMessage("Training not found");
         verify(trainingDao, never()).delete(ArgumentMatchers.any());
-        verify(trainingWorkloadService, never()).acceptTrainerWorkload(any());
     }
 
     @Test
@@ -199,7 +203,6 @@ class TrainingServiceTests {
                 .isInstanceOf(DomainException.class)
                 .hasMessage("Training does not exist");
         verify(trainingDao, never()).delete(any());
-        verify(trainingWorkloadService, never()).acceptTrainerWorkload(any());
     }
 
     @Test
@@ -245,8 +248,7 @@ class TrainingServiceTests {
         when(traineeService.getByUsername("Anvar_ibragimov")).thenReturn(trainee);
         when(trainerService.getByUsername("anvar_ibragimov")).thenReturn(trainer);
         when(trainingDao.save(training)).thenReturn(training);
-        when(trainingWorkloadService.acceptTrainerWorkload(any(TrainerWorkloadDTO.class)))
-                .thenReturn(ResponseEntity.ok(new ApiResponse<>(true, "Workload updated", null)));
+        doNothing().when(eventProducer).sendToQueue(any(TrainerWorkloadDTO.class));
 
         // When
         ApiResponse<Void> response = trainingService.addTraining(trainingDTO);
@@ -257,33 +259,11 @@ class TrainingServiceTests {
         verify(trainingDao).save(training);
         verify(traineeDao).update(trainee);
         verify(trainerDao).update(trainer);
-        verify(trainingWorkloadService).acceptTrainerWorkload(any(TrainerWorkloadDTO.class));
+        verify(eventProducer, times(1)).sendToQueue(any(TrainerWorkloadDTO.class));
         assertThat(trainee.getTrainings()).contains(training);
         assertThat(trainee.getTrainers()).contains(trainer);
         assertThat(trainer.getTrainings()).contains(training);
         assertThat(trainer.getTrainees()).contains(trainee);
-    }
-
-    @Test
-    void addTraining_WhenWorkloadServiceFails_ShouldThrowServiceUnavailableException() {
-        // Given
-        when(domainUtils.getCurrentUser()).thenReturn(trainer.getUser());
-        when(userDao.findByUsername("anvar_ibragimov")).thenReturn(Optional.of(trainer.getUser()));
-        when(trainingMapper.toEntity(trainingDTO)).thenReturn(training);
-        when(traineeService.getByUsername("Anvar_ibragimov")).thenReturn(trainee);
-        when(trainerService.getByUsername("anvar_ibragimov")).thenReturn(trainer);
-        when(trainingDao.save(training)).thenReturn(training);
-        when(trainingWorkloadService.acceptTrainerWorkload(any(TrainerWorkloadDTO.class)))
-                .thenReturn(ResponseEntity.ok(new ApiResponse<>(false, "Service error", null)));
-
-        // When & Then
-        assertThatThrownBy(() -> trainingService.addTraining(trainingDTO))
-                .isInstanceOf(ServiceUnavailableException.class)
-                .hasMessage("Service error");
-        verify(trainingDao).save(training);
-        verify(traineeDao).update(trainee);
-        verify(trainerDao).update(trainer);
-        verify(trainingWorkloadService).acceptTrainerWorkload(any(TrainerWorkloadDTO.class));
     }
 
     @Test
@@ -296,8 +276,7 @@ class TrainingServiceTests {
         when(traineeService.getByUsername("Anvar_ibragimov")).thenReturn(trainee);
         when(trainerService.getByUsername("anvar_ibragimov")).thenReturn(trainer);
         when(trainingDao.save(training)).thenReturn(training);
-        when(trainingWorkloadService.acceptTrainerWorkload(any(TrainerWorkloadDTO.class)))
-                .thenReturn(ResponseEntity.ok(new ApiResponse<>(true, "Workload updated", null)));
+        doNothing().when(eventProducer).sendToQueue(any(TrainerWorkloadDTO.class));
 
         // When
         ApiResponse<Void> response = trainingService.addTraining(trainingDTO);
@@ -308,7 +287,7 @@ class TrainingServiceTests {
         assertThat(trainee.getTrainings()).contains(training);
         verify(traineeDao).update(trainee);
         verify(trainerDao).update(trainer);
-        verify(trainingWorkloadService).acceptTrainerWorkload(any(TrainerWorkloadDTO.class));
+        verify(eventProducer, times(1)).sendToQueue(any(TrainerWorkloadDTO.class));
     }
 
     @Test
@@ -321,8 +300,7 @@ class TrainingServiceTests {
         when(traineeService.getByUsername("Anvar_ibragimov")).thenReturn(trainee);
         when(trainerService.getByUsername("anvar_ibragimov")).thenReturn(trainer);
         when(trainingDao.save(training)).thenReturn(training);
-        when(trainingWorkloadService.acceptTrainerWorkload(any(TrainerWorkloadDTO.class)))
-                .thenReturn(ResponseEntity.ok(new ApiResponse<>(true, "Workload updated", null)));
+        doNothing().when(eventProducer).sendToQueue(any(TrainerWorkloadDTO.class));
 
         // When
         ApiResponse<Void> response = trainingService.addTraining(trainingDTO);
@@ -333,7 +311,7 @@ class TrainingServiceTests {
         assertThat(trainer.getTrainings()).contains(training);
         verify(traineeDao).update(trainee);
         verify(trainerDao).update(trainer);
-        verify(trainingWorkloadService).acceptTrainerWorkload(any(TrainerWorkloadDTO.class));
+        verify(eventProducer, times(1)).sendToQueue(any(TrainerWorkloadDTO.class));
     }
 
     @Test
@@ -346,8 +324,7 @@ class TrainingServiceTests {
         when(traineeService.getByUsername("Anvar_ibragimov")).thenReturn(trainee);
         when(trainerService.getByUsername("anvar_ibragimov")).thenReturn(trainer);
         when(trainingDao.save(training)).thenReturn(training);
-        when(trainingWorkloadService.acceptTrainerWorkload(any(TrainerWorkloadDTO.class)))
-                .thenReturn(ResponseEntity.ok(new ApiResponse<>(true, "Workload updated", null)));
+        doNothing().when(eventProducer).sendToQueue(any(TrainerWorkloadDTO.class));
 
         // When
         ApiResponse<Void> response = trainingService.addTraining(trainingDTO);
@@ -357,7 +334,7 @@ class TrainingServiceTests {
         assertThat(trainee.getTrainings()).hasSize(1); // No duplicate training
         verify(traineeDao, never()).update(trainee); // No update if training already exists
         verify(trainerDao).update(trainer);
-        verify(trainingWorkloadService).acceptTrainerWorkload(any(TrainerWorkloadDTO.class));
+        verify(eventProducer, times(1)).sendToQueue(any(TrainerWorkloadDTO.class));
     }
 
     @Test
@@ -370,8 +347,7 @@ class TrainingServiceTests {
         when(traineeService.getByUsername("Anvar_ibragimov")).thenReturn(trainee);
         when(trainerService.getByUsername("anvar_ibragimov")).thenReturn(trainer);
         when(trainingDao.save(training)).thenReturn(training);
-        when(trainingWorkloadService.acceptTrainerWorkload(any(TrainerWorkloadDTO.class)))
-                .thenReturn(ResponseEntity.ok(new ApiResponse<>(true, "Workload updated", null)));
+        doNothing().when(eventProducer).sendToQueue(any(TrainerWorkloadDTO.class));
 
         // When
         ApiResponse<Void> response = trainingService.addTraining(trainingDTO);
@@ -381,6 +357,6 @@ class TrainingServiceTests {
         assertThat(trainer.getTrainings()).hasSize(1); // No duplicate training
         verify(trainerDao, never()).update(trainer); // No update if training already exists
         verify(traineeDao).update(trainee);
-        verify(trainingWorkloadService).acceptTrainerWorkload(any(TrainerWorkloadDTO.class));
+        verify(eventProducer, times(1)).sendToQueue(any(TrainerWorkloadDTO.class));
     }
 }

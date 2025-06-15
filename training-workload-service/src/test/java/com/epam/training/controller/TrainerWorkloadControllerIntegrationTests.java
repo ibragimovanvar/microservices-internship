@@ -56,38 +56,6 @@ public class TrainerWorkloadControllerIntegrationTests {
     void setUp() {
     }
 
-    /**
-     * Test for
-     */
-    @Test
-    public void givenTrainerWorkloadDTO_whenAcceptTrainerWorkload_thenReturnSuccess() throws Exception {
-        // given - setup
-        TrainerWorkloadDTO trainerWorkloadDTO = new TrainerWorkloadDTO();
-        trainerWorkloadDTO.setFirstName("Trainer");
-        trainerWorkloadDTO.setLastName("Ibragimov");
-        trainerWorkloadDTO.setUsername("trainer_ibragimov");
-        trainerWorkloadDTO.setYear(2025);
-        trainerWorkloadDTO.setMonth(Month.AUGUST.name());
-        trainerWorkloadDTO.setMinutes(320);
-        trainerWorkloadDTO.setActive(true);
-        trainerWorkloadDTO.setActionType("ADD");
-
-        BDDMockito.given(trainerWorkloadService.acceptTrainerWorkload(trainerWorkloadDTO))
-                .willAnswer(invocationOnMock -> new ApiResponse<>(true, "Trainer workload created successfully !", null));
-        BDDMockito.given(domainUtils.getCurrentUserUsername()).willReturn(trainerWorkloadDTO.getUsername());
-        BDDMockito.willDoNothing().given(domainUtils).checkUsername(trainerWorkloadDTO.getUsername());
-
-        // when - action
-        ResultActions response = mvc.perform(post(API_PATH)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(trainerWorkloadDTO))
-        );
-
-        // then - result
-        response.andDo(print())
-                .andExpect(status().isCreated());
-    }
-
 
     @Test
     public void givenUsername_whenGetTrainerWorkloadByMonth_thenReturnWorkload() throws Exception {
